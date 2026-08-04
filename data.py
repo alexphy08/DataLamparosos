@@ -8,28 +8,47 @@ meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']
 url1='https://docs.google.com/spreadsheets/d/e/2PACX-1vQZmuN0O2KSemx9d0QZT9ntJK31ZMGourGUqV4zAMG_hARMxI2U9mYK_yJSx-RjXa_QtYm-k6dm9UeG/pub?gid=0&single=true&output=csv'
 url2='https://docs.google.com/spreadsheets/d/e/2PACX-1vQZmuN0O2KSemx9d0QZT9ntJK31ZMGourGUqV4zAMG_hARMxI2U9mYK_yJSx-RjXa_QtYm-k6dm9UeG/pub?gid=2093754426&single=true&output=csv'
 url3='https://docs.google.com/spreadsheets/d/e/2PACX-1vQZmuN0O2KSemx9d0QZT9ntJK31ZMGourGUqV4zAMG_hARMxI2U9mYK_yJSx-RjXa_QtYm-k6dm9UeG/pub?gid=1959635478&single=true&output=csv'
+url3_='https://docs.google.com/spreadsheets/d/e/2PACX-1vQZmuN0O2KSemx9d0QZT9ntJK31ZMGourGUqV4zAMG_hARMxI2U9mYK_yJSx-RjXa_QtYm-k6dm9UeG/pub?gid=60416774&single=true&output=csv'
+url4='https://docs.google.com/spreadsheets/d/e/2PACX-1vQZmuN0O2KSemx9d0QZT9ntJK31ZMGourGUqV4zAMG_hARMxI2U9mYK_yJSx-RjXa_QtYm-k6dm9UeG/pub?gid=484386022&single=true&output=csv'
 
 df1=pd.read_csv(url1)
 df2=pd.read_csv(url2)
-df3=pd.read_csv(url3)
+df3_temp1=pd.read_csv(url3)
+df3_temp2=pd.read_csv(url3_)
+df4=pd.read_csv(url4)
 
+# Filtramos las columnas que necesitamos de cada uno
 df1=df1[['Precio','Fecha','Gastos','Fecha gasto']].copy()
+
 df2=df2[['Precio','Fecha','Envío','Gastos','Fecha gasto']].copy()
 df2.loc[173:,'Precio']=df2.loc[173:,'Precio']-df2.loc[173:,'Envío']
-df3=df3[['Precio','Fecha','m0','u','Envío','Gastos','Fecha gasto']].copy()
 
+df3_temp1=df3_temp1[['Precio','Fecha','Envío','Gastos','Fecha gasto']].copy()
+df3_temp2=df3_temp2[['Precio','Fecha','Envío','Gastos','Fecha gasto']].copy()
+
+# CONCATENAMOS LOS DOS DATAFRAMES DEL AÑO 3
+df3 = pd.concat([df3_temp1, df3_temp2], ignore_index=True)
+
+df4=df4[['Precio','Fecha','Envío','Gastos','Fecha gasto']].copy()
+
+
+# Convertimos las fechas
 df1['Fecha']=pd.to_datetime(df1['Fecha'],dayfirst=True)
 df1['Fecha gasto']=pd.to_datetime(df1['Fecha gasto'],dayfirst=True)
 df2['Fecha']=pd.to_datetime(df2['Fecha'],dayfirst=True)
 df2['Fecha gasto']=pd.to_datetime(df2['Fecha gasto'],dayfirst=True)
 df3['Fecha']=pd.to_datetime(df3['Fecha'],dayfirst=True)
 df3['Fecha gasto']=pd.to_datetime(df3['Fecha gasto'],dayfirst=True)
+df4['Fecha']=pd.to_datetime(df4['Fecha'],dayfirst=True)
+df4['Fecha gasto']=pd.to_datetime(df4['Fecha gasto'],dayfirst=True)
 
 year1=[]
 year2=[]
 year3=[]
+year4=[]
 
 for i in mes:
+    # ------------------ YEAR 1 ------------------
     data=df1[df1['Fecha'].dt.month==np.where(mes==i)[0][0]]
     data=data.groupby('Fecha')['Precio'].sum()
     data=data.reset_index(name='Lks')
@@ -39,6 +58,7 @@ for i in mes:
     data2=pd.concat([data,data1],axis=1)
     year1.append(data2)
 
+    # ------------------ YEAR 2 ------------------
     data_=df2[df2['Fecha'].dt.month==np.where(mes==i)[0][0]]
     data_=data_.groupby('Fecha')['Precio'].sum()
     data_=data_.reset_index(name='Lks')
@@ -48,6 +68,7 @@ for i in mes:
     data2_=pd.concat([data_,data1_],axis=1)
     year2.append(data2_)
 
+    # ------------------ YEAR 3 (Consolidado) ------------------
     data__=df3[df3['Fecha'].dt.month==np.where(mes==i)[0][0]]
     data__=data__.groupby('Fecha')['Precio'].sum()
     data__=data__.reset_index(name='Lks')
@@ -56,19 +77,37 @@ for i in mes:
     data1__=data1__.reset_index(name='Gasto')
     data2__=pd.concat([data__,data1__],axis=1)
     year3.append(data2__)
+
+    # ------------------ YEAR 4 ------------------
+    data4=df4[df4['Fecha'].dt.month==np.where(mes==i)[0][0]]
+    data4=data4.groupby('Fecha')['Precio'].sum()
+    data4=data4.reset_index(name='Lks')
+    data14=df4[df4['Fecha gasto'].dt.month==np.where(mes==i)[0][0]]
+    data14=data14.groupby('Fecha gasto')['Gastos'].sum()
+    data14=data14.reset_index(name='Gasto')
+    data24=pd.concat([data4,data14],axis=1)
+    year4.append(data24)
     
 year1.pop(0)
 year2.pop(0)
 year3.pop(0)
+year4.pop(0)
 
 for i in range(0,12):
     dat=year1[i]
     dat_=year2[i]
     dat__=year3[i]
+    dat4_=year4[i]
 
+    # Ajuste de fechas al 2023 (con protección para años bisiestos)
     dat_['Fecha']=dat_['Fecha'].apply(lambda x:x if x.month!=2 or x.day<=28 else x.replace(day=28))
     dat_['Fecha']=dat_['Fecha'].apply(lambda x:x.replace(year=2023))
+    
+    dat__['Fecha']=dat__['Fecha'].apply(lambda x:x if x.month!=2 or x.day<=28 else x.replace(day=28))
     dat__['Fecha']=dat__['Fecha'].apply(lambda x:x.replace(year=2023))
+    
+    dat4_['Fecha']=dat4_['Fecha'].apply(lambda x:x if x.month!=2 or x.day<=28 else x.replace(day=28))
+    dat4_['Fecha']=dat4_['Fecha'].apply(lambda x:x.replace(year=2023))
 
     start_date=dat['Fecha'].min().replace(day=1)
     end_date=pd.date_range(start=start_date,periods=1,freq='ME')[0]
@@ -78,15 +117,20 @@ for i in range(0,12):
     d=dat.set_index('Fecha').reindex(x_full_range,fill_value=0)
     d_=dat_.set_index('Fecha').reindex(x_full_range,fill_value=0)
     d__=dat__.set_index('Fecha').reindex(x_full_range,fill_value=0)
+    d4_=dat4_.set_index('Fecha').reindex(x_full_range,fill_value=0)
 
     ing_men1=np.sum(year1[i]['Lks'])
     ing_men2=np.sum(year2[i]['Lks'])
     ing_men3=np.sum(year3[i]['Lks'])
+    ing_men4=np.sum(year4[i]['Lks'])
 
+    # Gráficas mensuales
     plt.figure(figsize=(7,4))
     plt.plot(d.index,d['Lks'],label=f'Lks2023: {ing_men1}',marker='o',color='blue')
     plt.plot(d_.index,d_['Lks'],label=f'Lks2024: {ing_men2}',marker='o',color='red')
     plt.plot(d__.index,d__['Lks'],label=f'Lks2025: {ing_men3}',marker='o',color='orange')
+    plt.plot(d4_.index,d4_['Lks'],label=f'Lks2026: {ing_men4}',marker='o',color='green')
+    
     plt.title(f'Balance mensual (Mes {i+1})')
     plt.xlabel('Fecha')
     plt.ylabel('Lks')
@@ -95,24 +139,31 @@ for i in range(0,12):
     plt.legend()
     plt.tight_layout()
     plt.savefig(f'm{i+1}')
+    plt.close() # Es buena práctica cerrar la figura para no saturar la memoria
 
+# Consolidación anual
 y1=pd.concat(year1,axis=0).sort_values(by='Fecha')
 y2=pd.concat(year2,axis=0).sort_values(by='Fecha')
 y3=pd.concat(year3,axis=0).sort_values(by='Fecha')
+y4=pd.concat(year4,axis=0).sort_values(by='Fecha')
 
 y1=y1.set_index('Fecha')
 y2=y2.set_index('Fecha')
 y3=y3.set_index('Fecha')
+y4=y4.set_index('Fecha')
 
 date_range=pd.date_range(start='2023-01-01',end='2023-12-31')
 y1=y1.reindex(date_range,fill_value=0)
 y2=y2.reindex(date_range,fill_value=0)
 y3=y3.reindex(date_range,fill_value=0)
+y4=y4.reindex(date_range,fill_value=0)
 
+# Gráfica anual
 plt.figure(figsize=(10,4))
 plt.plot(y1.index,y1['Lks'],'b-',label='2023')
 plt.plot(y2.index,y2['Lks'],'r-',label='2024')
 plt.plot(y3.index,y3['Lks'],'-',label='2025',color='orange')
+plt.plot(y4.index,y4['Lks'],'-',label='2026',color='green') 
 
 plt.title('Comparación anual',fontsize=14)
 plt.xlabel('Fecha',fontsize=14)
@@ -121,4 +172,5 @@ plt.grid()
 plt.xticks(pd.date_range(start='2023-01-01', end='2023-12-31', freq='ME'), rotation=90)
 plt.legend(fontsize=14)
 plt.tight_layout()
-plt.savefig("2023_2024_2025.png")
+plt.savefig("Comparacion_Todos_Los_Anos.png") 
+#plt.show() # Por si quieres verla en pantalla antes de que termine el script
