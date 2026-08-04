@@ -1,1 +1,1 @@
-#Carpeta de scripts de la empresa Lamparosos 
+Carpeta de scripts de la empresa Lamparosos 
