@@ -5,3 +5,5 @@ Emprendimiento que empezó en 2023 y que ahora se convirtió en una empresa rela
 
 *Gracias a este proyecto es que he podido seguir estudiando la carrera de física a la par que haciendo crecer mi empresa de manera independiente.*
 <br clear="left"/> <!-- Esto asegura que el contenido de abajo no se suba -->
+
+<img align="right" width=250 src="https://github.com/user-attachments/assets/bae27c36-a800-481d-a9fc-6859d9003165" alt="lámparas personalizadas">
