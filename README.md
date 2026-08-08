@@ -18,4 +18,4 @@ Personalizando diseños a medida para el cliente sin importar el contenido.
 ### Láser CO2 40W
 Máquina láser a la que le he hecho los estudios que he podido a lo largo de la carrera desde la óptica y fotónica además de la parte experimental.
 
-*Estudios de espectrometría para un modelo mucho más simplificado*
+*Estudios de espectrometría para un modelo mucho más simplificado.*
